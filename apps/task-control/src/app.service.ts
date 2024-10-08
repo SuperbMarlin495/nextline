@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -7,28 +7,70 @@ import { Task } from '@app/entities/task-control.entity';
 @Injectable()
 export class AppService {
 
-  constructor( @Inject('USER_SERVICE') private client: ClientProxy,  
-               @InjectRepository(Task)  private readonly taskRepository: Repository<Task>,
-              ){}
+  constructor(@Inject('USER_SERVICE') private client: ClientProxy,
+    @InjectRepository(Task) private readonly taskRepository: Repository<Task>,
+  ) { }
 
-  async getUserValidate(data: any){
-    const pattern = { cmd: 'new_task' };
-    await this.client.connect();
-    return this.client.send(pattern, data).toPromise();
+  async getUserValidate(data: number) {
+    try {
+      const pattern = { cmd: 'new_task' };
+      await this.client.connect();
+      return this.client.send(pattern, data).toPromise();
+    }
+    catch (error) {
+      console.log(error)
+      throw new HttpException('Error al validar el usuario', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
   async createTask(data: Partial<Task>): Promise<Task> {
-    const newTask = this.taskRepository.create(data);
-    return await this.taskRepository.save(newTask);
+    try {
+      const newTask = this.taskRepository.create(data);
+      return await this.taskRepository.save(newTask);
+    }
+    catch (error) {
+      console.log(error)
+      throw new HttpException('Error al crear la tarea', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 
-    // Obtener todas las tareas
-    async getAllTasks(): Promise<Task[]> {
+  async getAllTasks(): Promise<Task[]> {
+    try {
       return this.taskRepository.find();
     }
-  
-    // Obtener una tarea por su id
-    async getTaskById(id: number): Promise<Task> {
+    catch (error) {
+      console.log(error)
+      throw new HttpException('Error al obtener las tareas', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async getTaskById(id: number): Promise<Task> {
+    try {
       return this.taskRepository.findOneBy({ id });
     }
+    catch (error) {
+      console.log(error)
+      throw new HttpException('Error al obtener la tarea', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async updateTask(data: Partial<Task>): Promise<void>{
+    try{
+      await this.taskRepository.update(data.id, data)
+    }
+    catch(error){
+      console.log(error)
+      throw new HttpException('Error al actualizar la tarea', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
+
+  async deleteTask(id: number){
+    try{
+      await this.taskRepository.delete(id);
+    }
+    catch(error){
+      console.log(error)
+      throw new HttpException('Error al crear la tarea', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
 }

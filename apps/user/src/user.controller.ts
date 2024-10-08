@@ -1,20 +1,40 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { MessagePattern } from '@nestjs/microservices';
+import { User } from '@app/entities/user.entity';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @MessagePattern({ cmd: 'new_task' })
-  async validUser(data: any): Promise<string>{
-    console.log('si llego aqui', data);
-    return 'Task creada';
+  async validUser(id: number): Promise<boolean>{
+    let response = await this.userService.getUserById(id)
+    return response ? true : false;
   }
 
-  @Get('saludo')
-  async getHola(){
-    console.log('SI llego aqui')
-    return await this.userService.getHello();
+  @Get('getAllUser')
+  async getAllUser  (){
+    return await this.userService.getAllUser();
+  }
+
+  @Get('getSingleUser/:id')
+  async getSingelUser(@Param('id') id: number){
+    return await this.userService.getUserById(id)
+  }
+
+  @Post('createUser')
+  async createNewUser(@Body() data: Partial<User>){
+    return await this.userService.createUser(data);
+  }
+
+  @Post('updateUser')
+  async updateUser(@Body() data: User){
+    return await this.userService.updateUser(data);
+  }
+
+  @Delete('deleteUser/:id')
+  async deleteUser(@Param('id') id: number){
+    return await this.userService.deleteUser(id)
   }
 }
