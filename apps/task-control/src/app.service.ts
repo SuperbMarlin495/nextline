@@ -73,4 +73,16 @@ export class AppService {
       throw new HttpException('Error al crear la tarea', HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
+
+  async getTaskByIdUser(id: number): Promise<Task[]> {
+    try {
+      return await this.taskRepository.find({ 
+        where: {userId: id}
+       });
+    }
+    catch (error) {
+      console.log(error)
+      throw new HttpException('Error al obtener la tarea', HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+  }
 }

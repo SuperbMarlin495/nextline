@@ -36,4 +36,10 @@ export class AppController {
     async deleteTask(@Param('id') id: number){
       return this.appService.deleteTask(id);
     }
+
+    @Get('getTaskByUser/:id')
+    async getTaskByUser(@Param('id') id: number){
+      let responseUser = await this.validateUser(id);
+      return responseUser ? this.appService.getTaskByIdUser(id) : 'El usuario no existe';
+    }
 }
